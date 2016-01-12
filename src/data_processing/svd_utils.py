@@ -1,19 +1,20 @@
 from scipy.linalg import svd
 import numpy as np
 import os
-
+import pdb
 from read_association_matrix import load_vocabulary
 
 
 def cos_sim(v1, v2):
     """
-    Compute cosine similarity between two vectors.
+    Compute cosine similarity between two vectors or matrices.
     """
-    norm = np.linalg.norm(v1)*np.linalg.norm(v2)
-    res = 0
+    v1, v2 = np.atleast_2d(v1), np.atleast_2d(v2)
 
-    if norm > 0:
-        res = np.dot(v1, v2)/norm
+    norm = np.linalg.norm(v1, axis=1)*np.linalg.norm(v2, axis=1)
+    # pdb.set_trace()
+    dot = np.dot(v1, v2.T).flatten()
+    res = dot/norm
 
     return res
 
