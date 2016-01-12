@@ -1,8 +1,7 @@
 *~
-*swp
-*swo
-*pyc
-*npz
 
-other/
+*.swp
+*.swo
+*.pyc
+
 
