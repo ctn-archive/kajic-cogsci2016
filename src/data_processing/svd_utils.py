@@ -38,7 +38,7 @@ def reduced_matrix(W, nr_dim, path=''):
     nr_word = len(W)
 
     ur = u[:, :nr_dim]
-    sr = np.eye(nr_dim)*s[:nr_dim]
+    sr = np.diag(np.sqrt(s[:nr_dim]))
     # vr = v[:nrdim, :]
 
     r_mat = np.dot(ur, sr)

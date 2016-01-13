@@ -39,7 +39,8 @@ def load_vocabulary():
     W = np.asarray(Wsparse.todense())
 
     # normalize weights to [0-1] interval
-    W /= W.max()
+    W /= 2
+    np.fill_diagonal(W, 1.)
 
     return W, id2voc, voc2id
 
