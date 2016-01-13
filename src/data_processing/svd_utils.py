@@ -60,7 +60,7 @@ def reduced_matrix(W, nr_dim, path=''):
 if __name__=="__main__":
     W, _, _ = load_vocabulary()
 
-    path = '/home/ivana/phd/workspace/spa_rat/data/processed/'
+    path = '../../data/processed/'
     was = reduced_matrix(W, nr_dim=256, path=path)
     print('done')
 
