@@ -115,8 +115,8 @@ print 'Average number of associates per word:',\
     normed/nr_words, nr_assoc_row.std()
 
 # save the connection matrix and the vocabularies
-path = '../../data/processed/'
-name = 'free_associations_vocabulary'
+path = '../../data/associationmatrices/'
+name = 'association_norms_symm'
 resp = raw_input('Save the data to ' + path + name + '? [y/n] ')
 
 if resp in 'yY':
