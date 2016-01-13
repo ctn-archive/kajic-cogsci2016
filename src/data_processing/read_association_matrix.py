@@ -22,8 +22,8 @@ def load_vocabulary():
     """
 
     # absolute path to the free association norms data
-    path = '../../data/processed/'
-    filename = 'free_associations_vocabulary'
+    path = '../../data/associationmatrices/'
+    filename = 'association_norms_symm'
 
     try:
         with open(path+filename, 'rb') as f:
@@ -50,7 +50,7 @@ def show_associates(word):
     Show the associates of a word in descending order of association strength.
     """
     W, ids, voc = load_vocabulary()
-
+    
     associated_ids = np.asarray(W[voc[word]].nonzero()[0])
     strengths = W[voc[word], associated_ids]
 

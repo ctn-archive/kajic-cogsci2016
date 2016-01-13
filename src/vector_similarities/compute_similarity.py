@@ -1,29 +1,40 @@
 import numpy as np
-from itertools import chain
+import cPickle as pickle
+
 from data_processing.svd_utils import cos_sim
 
 
-def load_problems():
-    datapath = '../../data/processed/rat_items'
+def load_rat_problems():
+    datapath = '../../data/rat/problems.txt'
     items = np.loadtxt(datapath, dtype=np.character)
 
     return items
 
 
-def load_vectors():
-    datapath = '../../data/processed/rat_items'
-
-    items = np.loadtxt(datapath, dtype=np.character).tolist()
-    vocabulary = list(chain(*items))
-
-    vectors = np.random.randn(len(vocabulary), 10)
-
-    return vocabulary, vectors
-
-
-def all_in_vocab(problem, vocabulary):
+def load_vectors(filename):
     """
-    Check whether all problem cues and the target exist in the vocabulary. 
+    Function to load semantic pointers and mappings from the
+    /data/semanticpointers/ directory.
+    """
+    path = '../../data/semanticpointers/'
+    datapath = path + filename
+
+    mapping_path = datapath + '_map.pkl'
+    vectors_path = datapath + '_mat.npz'
+
+    npvec = np.load(vectors_path)
+    vectors = npvec[npvec.keys()[0]]
+
+    with open(mapping_path, 'r') as f:
+        w2i = pickle.load(f)
+        i2w = pickle.load(f)
+
+    return vectors, w2i, i2w
+
+
+def all_words_in_vocab(problem, vocabulary):
+    """
+    Check whether all problem cues and the target exist in the vocabulary.
     Return True/False.
     """
     word_in_vocabulary = True
@@ -34,48 +45,49 @@ def all_in_vocab(problem, vocabulary):
     return word_in_vocabulary
 
 
+
+method = 'random_483w_16d'
+
 # load RAT items as a list of lists
-rat_problems = load_problems()
+rat_problems = load_rat_problems()
 
 # load word vocabulary as list and vectors as an ndarray
-vocabulary, vectors = load_vectors()
+vectors, w2i, i2w = load_vectors(method)
 
-similarities_target = []
-similarities_vocab = []
+similarities_target, similarities_everything = [], []
 
 nr_problems = 0
+total_problems = len(rat_problems)
 
 for problem in rat_problems:
-    if not all_in_vocab(problem, vocabulary):
+    # check the RAT words exist in the vocabulary
+    if not all_words_in_vocab(problem, w2i.keys()):
         continue
 
     nr_problems += 1
 
     c1, c2, c3, target = problem
-    cues = vectors[[vocabulary.index(c1),
-                    vocabulary.index(c2),
-                    vocabulary.index(c3)]]
-    
-    c1v = vectors[vocabulary.index(c1)]
-    c2v = vectors[vocabulary.index(c2)]
-    c3v = vectors[vocabulary.index(c3)]
 
-    tv = vectors[vocabulary.index(target)]
+    # get vectors for cues and target
+    cue_vectors = vectors[[w2i[c1], w2i[c2], w2i[c3]]]
+    target_vector = vectors[w2i[target]]
 
-    s1 = cos_sim(c1v, tv)
-    s2 = cos_sim(c2v, tv)
-    s3 = cos_sim(c3v, tv)
+    # cues -> target similarity
+    cue_target_sim = cos_sim(cue_vectors, target_vector)
+    similarities_target.append(cue_target_sim)
 
-    sims = cos_sim(cues, tv)
-    
-    np.testing.assert_almost_equal(s1[0], sims[0])
-    np.testing.assert_almost_equal(s2[0], sims[1])
-    np.testing.assert_almost_equal(s3[0], sims[2])
-
-    similarities_target.append([s1, s2, s3])
+    # cues -> all other words similarity
+    cues_words_sim = [cos_sim(cue_vectors[0], vectors).mean(),
+                      cos_sim(cue_vectors[1], vectors).mean(),
+                      cos_sim(cue_vectors[2], vectors).mean()]
+    similarities_everything.append(cues_words_sim)
 
 sim_target = np.array(similarities_target, dtype=np.float)
+sim_everything = np.array(similarities_everything, dtype=np.float)
 
-print('Average similarity with the target:', sim_target.mean())
-print('Average similarity with all words:', sim_target.mean())
-
+print('%d/%d problems exist with the %s vocabulary.' % (nr_problems,
+      total_problems, method))
+print('Average similarity with the target: %.5f (std=%.3f)' %
+      (sim_target.mean(), sim_target.std()))
+print('Average similarity with all words: %.5f (std=%.3f)' %
+      (sim_everything.mean(), sim_everything.std()))

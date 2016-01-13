@@ -48,6 +48,7 @@ def get_experimental_data():
         cues = data.irow(i).Items.split('/')
         target = data.irow(i).Solutions.split('/')[0]
         rat_item = cues + [target]
+        rat_item = [item.upper() for item in rat_item]
 
         # extract percentage of people solving the item
         performance[i, 0] = data.irow(i)[2]
@@ -79,7 +80,7 @@ def number_idx(array, number, sent=-1):
 if __name__ == "__main__":
 
     rat_items, performance = get_experimental_data()
-    datapath = '../../data/processed/rat_items'
+    datapath = '../../data/rat/problems.txt'
 
     with open(datapath, 'w') as f:
         for idx, task in enumerate(rat_items):
