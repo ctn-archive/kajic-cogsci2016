@@ -5,4 +5,4 @@
 *.pyc
 *.npz
 
-
+data/raw/freeassoc
