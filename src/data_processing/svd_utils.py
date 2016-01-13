@@ -2,7 +2,7 @@ from scipy.linalg import svd
 import numpy as np
 import os
 import pdb
-from read_association_matrix import load_vocabulary
+from data_processing.read_association_matrix import load_vocabulary
 
 
 def cos_sim(v1, v2):

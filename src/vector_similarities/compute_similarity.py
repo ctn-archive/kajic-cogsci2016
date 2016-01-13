@@ -68,9 +68,9 @@ for problem in rat_problems:
 
     sims = cos_sim(cues, tv)
     
-    assert s1 == sims[0]
-    assert s2 == sims[1]
-    assert s3 == sims[2]
+    np.testing.assert_almost_equal(s1[0], sims[0])
+    np.testing.assert_almost_equal(s2[0], sims[1])
+    np.testing.assert_almost_equal(s3[0], sims[2])
 
     similarities_target.append([s1, s2, s3])
 
