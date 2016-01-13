@@ -22,7 +22,7 @@ def load_vocabulary():
     """
 
     # absolute path to the free association norms data
-    path = '/home/ivana/phd/workspace/spa_rat/data/processed/'
+    path = '../../data/processed/'
     filename = 'free_associations_vocabulary'
 
     try:

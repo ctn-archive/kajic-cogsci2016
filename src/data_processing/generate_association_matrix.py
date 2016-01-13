@@ -17,6 +17,7 @@ import matplotlib.pyplot as pl
 import pandas as pd
 import cPickle as pickle
 import os
+import warnings
 
 # directory with the spreadsheets
 datapath = '../../data/raw/'
@@ -68,11 +69,13 @@ for filename in dir_files:
         try:
             fsg = np.float(row['FSG'])
         except ValueError:
+            warnings.warn('FSG value error')
             fsg = .0
 
         try:
             bsg = np.float(row['BSG'])
         except ValueError:
+            warnings.warn('BSG value error')
             bsg = .0
 
         database += ((cue, target, fsg, bsg), )
@@ -97,6 +100,10 @@ for cue, target, fsg, bsg in database:
     cue_id, target_id = wtoid[cue], wtoid[target]
     conn_mat[cue_id, target_id] += fsg
     # conn_mat[target_id, cue_id] += bsg
+
+# Beware: conn_mat += conn_mat.T does NOT work!
+conn_mat = conn_mat + conn_mat.T
+print 'Symmetry check (should be 0):', np.max(np.abs(conn_mat - conn_mat.T))
 
 # count the deviation for the avg nr of associates
 nr_assoc_row = np.zeros(nr_words)
