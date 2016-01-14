@@ -15,7 +15,7 @@ name = 'random_%dw_%dd_' % (nr_w, nr_dim)
 
 # store vectors in range [-1, 1]
 vectors = 2*np.random.rand(nr_w, nr_dim)-1
-np.savez(name + 'mat', vectors)
+np.savez(sppath + name + 'mat', vectors)
 
 # store mappings
 w2i = dict(zip(words, idx))
