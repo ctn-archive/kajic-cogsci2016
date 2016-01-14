@@ -21,7 +21,6 @@ np.savez(name + 'mat', vectors)
 w2i = dict(zip(words, idx))
 i2w = dict(zip(idx, words))
 
-
 with open(sppath + name + 'map.pkl', 'w') as f:
     pickle.dump(w2i, f)
     pickle.dump(i2w, f)

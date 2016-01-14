@@ -1,7 +1,7 @@
 import numpy as np
 import cPickle as pickle
 
-from data_processing.svd_utils import cos_sim
+from data_processing.svd import cos_sim
 
 
 def load_rat_problems():
@@ -40,13 +40,14 @@ def all_words_in_vocab(problem, vocabulary):
     word_in_vocabulary = True
 
     for word in problem:
-        word_in_vocabulary = word in vocabulary
+        word_in_vocabulary = (word in vocabulary) and word_in_vocabulary
 
     return word_in_vocabulary
 
 
 
 method = 'random_483w_16d'
+method = 'svd_5018w_16d'
 
 # load RAT items as a list of lists
 rat_problems = load_rat_problems()

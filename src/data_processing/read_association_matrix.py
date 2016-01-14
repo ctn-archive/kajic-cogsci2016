@@ -9,6 +9,7 @@ import numpy as np
 import cPickle as pickle
 import pdb
 
+
 def load_vocabulary():
     """
     Unpickle and return the content of the file
@@ -31,8 +32,8 @@ def load_vocabulary():
             voc2id = pickle.load(f)
             Wsparse = pickle.load(f)
     except IOError:
-        raise IOError('Association matrix "' + filename  + '" not found' +\
-                      ' in ' + path + '. To generate the matrix run ' +\
+        raise IOError('Association matrix "' + filename + '" not found' +
+                      ' in ' + path + '. To generate the matrix run ' +
                       'generate_association_matrix.py')
 
     # convert to dense matrix (stored as sparse for memory reasons)
@@ -50,7 +51,7 @@ def show_associates(word):
     Show the associates of a word in descending order of association strength.
     """
     W, ids, voc = load_vocabulary()
-    
+
     associated_ids = np.asarray(W[voc[word]].nonzero()[0])
     strengths = W[voc[word], associated_ids]
 
@@ -59,7 +60,7 @@ def show_associates(word):
     print('Words associated to', word.upper())
 
     for idx in sorted_strengths_id:
-        print ids[associated_ids[idx]], associated_ids[idx], strengths[idx]
+        print(ids[associated_ids[idx]], associated_ids[idx], strengths[idx])
 
     return associated_ids[sorted_strengths_id]
 
