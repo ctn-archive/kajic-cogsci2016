@@ -4,6 +4,8 @@
 *.swo
 *.pyc
 *.npz
+*.pkl
+.ipynb_checkpoints/
 
 .doit.db
 data/raw/freeassoc
