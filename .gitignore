@@ -3,6 +3,7 @@
 *.swp
 *.swo
 *.pyc
+*.npy
 *.npz
 *.pkl
 .ipynb_checkpoints/

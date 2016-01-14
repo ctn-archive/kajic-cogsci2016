@@ -21,7 +21,7 @@ args = parser.parse_args()
 if len(args.tofetch) <= 0:
     args.tofetch = datasets.keys()
 
-target_dir = os.path.join(os.path.basename(
+target_dir = os.path.join(os.path.dirname(
     __file__), os.pardir, 'data', 'raw')
 for dataset_name in args.tofetch:
     fetch(dataset_name, target_dir)

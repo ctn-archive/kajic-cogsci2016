@@ -1,142 +1,97 @@
-"""
-Read the spreadsheets in ./data/ and return the following
-information:
-    a) the number of normed words (counting yes)
-    b) a pickled file named: free_association_vocabulary
-
-The pickled file contains (in the order):
-    1. idtow dictionary: mapping between word ids and words
-    2. wtoid dictionary: mapping between words and word ids
-    3. numpy array (csr_matrix): cue x responses association strength matrix
-"""
 from __future__ import division
-from scipy.sparse import csr_matrix
+from __future__ import print_function
 
 import numpy as np
-import matplotlib.pyplot as pl
-import pandas as pd
 import cPickle as pickle
 import os
-import warnings
 
-# directory with the spreadsheets
-datapath = '../../data/raw/'
 
-wtoid = dict()      # word to index dictionary
-idtow = dict()      # index to word dictionary
-normed = 0          # count the number of normed words (should be 5018)
+def gen_asymmetric(words, association_database, diag=1.):
+    """Generates an asymmetric association matrix from cues (rows) to targets
+    (columns).
 
-database = ()
-cues = set()
-words = set()
+    Parameters
+    ----------
+    words : sequence
+        Set of all occurring words.
+    association_database : sequence of tuples (cue, target, strength)
+        Associations to build matrix from.
+    diag : float, optional
+        Value to use for the diagonal (cue == target).
 
-dir_files = os.listdir(datapath)
+    Returns
+    -------
+    tuple
+        (strength_mat, id2word, word2id) with the matrix of association
+        strengths strength_mat, mapping from matrix indices to words id2word,
+        and mapping from words to matrix indices.
+    """
+    id2word = list(words)
+    word2id = {w: i for i, w in enumerate(id2word)}
+    strength_mat = np.zeros((len(words), len(words)))
+    for cue, target, strength in association_database:
+        strength_mat[word2id[cue], word2id[target]] += strength
+    np.fill_diagonal(strength_mat, diag)
+    assert np.all(strength_mat <= 1.)
+    return strength_mat, id2word, word2id
 
-# there should be 8 sheets of data
-sheet_name_pref = 'Cue_Target_'
-nr_sheets = np.array([sheet_name_pref in name for name in dir_files])
-assert nr_sheets.sum() == 8
 
-# first get all the data from the sheets and store it in a 'database'
-for filename in dir_files:
-    # read in the sheet
-    datafile = datapath + filename
+def gen_symmetric(words, association_database, diag=1.):
+    """Generates a symmetric association matrix from cues (rows) to targets
+    (columns). This is done by using the asymmetric association matrix W and
+    calculating (W + W.T)/2.
 
-    # skip everything that is not a spreadsheet
-    if 'Cue_Target_' not in filename:
-        continue
+    Parameters
+    ----------
+    words : sequence
+        Set of all occurring words.
+    association_database : sequence of tuples (cue, target, strength)
+        Associations to build matrix from.
+    diag : float, optional
+        Value to use for the diagonal (cue == target).
 
-    # read the contents of the spreadsheet
-    print 'Processing: ', filename
-    df = pd.read_csv(datafile, skipinitialspace=True)
-    normed += df['NORMED?'].value_counts()['YES']
+    Returns
+    -------
+    tuple
+        (strength_mat, id2word, word2id) with the matrix of association
+        strengths strength_mat, mapping from matrix indices to words id2word,
+        and mapping from words to matrix indices.
+    """
+    asymetric, id2word, word2id = gen_asymmetric(
+        words, association_database, diag=diag)
+    return (asymetric + asymetric.T) / 2., id2word, word2id
 
-    # extract norms
-    for i in range(len(df)):
-        row = df.irow(i)
 
-        # skip unnormed data
-        if row['NORMED?'] == 'NO':
-            continue
+def print_stats(mat):
+    assoc_counts = np.sum(mat > 0., axis=1)
+    print(
+        "Average number of associates per word:", np.mean(assoc_counts),
+        np.std(assoc_counts))
 
-        cue, target = row['CUE'].lower(), row['TARGET'].lower()
-        cues.add(cue)
 
-        words.add(cue)
-        words.add(target)
+def save_assoc_mat(path, name, strength_mat, id2word, word2id):
+    """Save an association matrix.
 
-        # extract forward-strength
-        try:
-            fsg = np.float(row['FSG'])
-        except ValueError:
-            warnings.warn('FSG value error')
-            fsg = .0
+    Parameters
+    ----------
+    path : str
+        Output directory.
+    name : str
+        Filename without suffix.
+    strength_mat : ndarray
+        Association matrix.
+    id2word: sequence/dict
+        Mapping from index to word.
+    word2id: dict
+        Mapping from word to index.
+    """
+    if not os.path.exists(path):
+        os.makedirs(path)
 
-        try:
-            bsg = np.float(row['BSG'])
-        except ValueError:
-            warnings.warn('BSG value error')
-            bsg = .0
+    mat_file = os.path.join(path, name + '.npy')
+    map_file = os.path.join(path, name + '.pkl')
 
-        database += ((cue, target, fsg, bsg), )
-
-ids = np.arange(len(words))     # create a unique id for every word
-
-# fill the dictionaries with eiter words or ids as keys
-wtoid.update(zip(words, ids))
-idtow.update(zip(ids, words))
-nr_words = len(wtoid)
-
-# make sure all ids are unique
-assert len(np.unique(idtow.values())) == len(wtoid)
-
-print 'Number of normed words (should be 5019):', len(wtoid)
-print 'Number of normed responses (should be 63619):', normed
-
-# then create a connection matrix based on the entries in the database
-conn_mat = np.zeros((nr_words, nr_words))
-
-for cue, target, fsg, bsg in database:
-    cue_id, target_id = wtoid[cue], wtoid[target]
-    conn_mat[cue_id, target_id] += fsg
-    # conn_mat[target_id, cue_id] += bsg
-
-# Beware: conn_mat += conn_mat.T does NOT work!
-conn_mat = conn_mat + conn_mat.T
-print 'Symmetry check (should be 0):', np.max(np.abs(conn_mat - conn_mat.T))
-
-# count the deviation for the avg nr of associates
-nr_assoc_row = np.zeros(nr_words)
-
-for i, row in enumerate(conn_mat):
-    nr_assoc_row[i] = len(np.nonzero(row)[0])
-
-print 'Average number of associates per word:',\
-    normed/nr_words, nr_assoc_row.std()
-
-# save the connection matrix and the vocabularies
-path = '../../data/associationmatrices/'
-name = 'association_norms_symm'
-resp = raw_input('Save the data to ' + path + name + '? [y/n] ')
-
-if resp in 'yY':
-    print 'Saving the vocabularies and the connection matrix...'
-    f = open(path + name, 'wb')
-    pickle.dump(idtow, f, protocol=2)
-    pickle.dump(wtoid, f, protocol=2)
-
-    sparse_mat = csr_matrix(conn_mat)
-
-    pickle.dump(sparse_mat, f)
-    f.close()
-    print 'Done.'
-
-# if desired, plot the data
-if 0:
-    pl.figure()
-    pl.hist(nr_assoc_row, bins=int(nr_assoc_row.max()))
-    pl.xlabel('Number of associates')
-    pl.ylabel('Number of words in the database')
-    pl.savefig('fa_word_distr.pdf', bbox_inches='tight')
-
-    pl.show()
+    np.save(mat_file, strength_mat)
+    with open(map_file, 'wb') as f:
+        pickle.dump(id2word, f, protocol=2)
+        pickle.dump(word2id, f, protocol=2)
