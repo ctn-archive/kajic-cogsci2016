@@ -44,7 +44,7 @@ def all_words_in_vocab(problem, vocabulary):
 
     return word_in_vocabulary
 
-def compute_similarity(method):
+def compute_similarity(method, quiet=True):
     # load RAT items as a list of lists
     rat_problems = load_rat_problems()
 
@@ -52,6 +52,7 @@ def compute_similarity(method):
     vectors, w2i, i2w = load_vectors(method)
 
     similarities_target, similarities_everything = [], []
+    target_positions = []
 
     nr_problems = 0
     total_problems = len(rat_problems)
@@ -74,25 +75,36 @@ def compute_similarity(method):
         similarities_target.append(cue_target_sim)
 
         # cues -> all other words similarity
-        cues_words_sim = [cos_sim(cue_vectors[0], vectors).mean(),
-                          cos_sim(cue_vectors[1], vectors).mean(),
-                          cos_sim(cue_vectors[2], vectors).mean()]
+        sims1 = cos_sim(cue_vectors[0], vectors)
+        sims2 = cos_sim(cue_vectors[1], vectors)
+        sims3 = cos_sim(cue_vectors[2], vectors)
+
+        similarities_words = sims1 + sims2 + sims3
+
+        # find the target position
+        target_pos = lambda s, t: np.where(s.argsort()[::-1] == w2i[t])[0][0]
+        target_positions.append(target_pos(similarities_words, target))
+
+        cues_words_sim = [sims1.mean(), sims2.mean(), sims3.mean()]
         similarities_everything.append(cues_words_sim)
 
     sim_target = np.array(similarities_target, dtype=np.float)
     sim_everything = np.array(similarities_everything, dtype=np.float)
+    targets = np.array(target_positions, dtype=np.int)
 
-    print('%d/%d problems exist with the %s vocabulary.' % (nr_problems,
-          total_problems, method))
-    print('Average similarity with the target: %.5f (std=%.3f)' %
-          (sim_target.mean(), sim_target.std()))
-    print('Average similarity with all words: %.5f (std=%.3f)' %
-          (sim_everything.mean(), sim_everything.std()))
-    return sim_target, sim_everything
+    if quiet:
+        print('%d/%d problems exist with the %s vocabulary.' % (nr_problems,
+              total_problems, method))
+        print('Average similarity with the target: %.5f (std=%.3f)' %
+              (sim_target.mean(), sim_target.std()))
+        print('Average similarity with all words: %.5f (std=%.3f)' %
+              (sim_everything.mean(), sim_everything.std()))
+
+    return sim_target, sim_everything, targets
 
 
 if __name__ == '__main__':
-    method = 'svd_5018w_256d'
+    method = 'svd_5018w_512d'
     
-    st, se = compute_similarity(method)
+    st, se, targets = compute_similarity(method)
 
