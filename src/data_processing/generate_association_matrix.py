@@ -77,7 +77,7 @@ def save_assoc_mat(path, name, strength_mat, id2word, word2id):
     path : str
         Output directory.
     name : str
-        Filename without suffix.
+        Filename without extension.
     strength_mat : ndarray
         Association matrix.
     id2word: sequence/dict
@@ -95,3 +95,31 @@ def save_assoc_mat(path, name, strength_mat, id2word, word2id):
     with open(map_file, 'wb') as f:
         pickle.dump(id2word, f, protocol=2)
         pickle.dump(word2id, f, protocol=2)
+
+
+def load_assoc_mat(path, name):
+    """Load an association matrix.
+
+    Parameters
+    ----------
+    path : str
+        Input directory
+    name : str
+        Filename without extension.
+
+    Returns:
+    --------
+    tuple
+        (strength_mat, id2word, word2id) with the matrix of association
+        strengths strength_mat, mapping from matrix indices to words id2word,
+        and mapping from words to matrix indices.
+    """
+    mat_file = os.path.join(path, name + '.npy')
+    map_file = os.path.join(path, name + '.pkl')
+
+    strength_mat = np.load(mat_file)
+    with open(map_file, 'rb') as f:
+        id2word = pickle.load(f)
+        word2id = pickle.load(f)
+
+    return strength_mat, id2word, word2id
