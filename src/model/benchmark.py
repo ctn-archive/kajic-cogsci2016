@@ -36,7 +36,7 @@ class RatModel(ctn_benchmark.Benchmark):
         pointers, i2w, _ = load_pointers(sp_path, p.sp_file)
 
         rat_path = os.path.join(data_dir, 'rat', 'problems.txt')
-        self.rat_items = list(filter_valid(load_rat_items(rat_path), i2w))[:10]
+        self.rat_items = list(filter_valid(load_rat_items(rat_path), i2w))
         shuffle(self.rat_items)
 
         with spa.SPA(seed=p.model_seed) as model:
