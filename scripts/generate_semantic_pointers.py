@@ -33,5 +33,5 @@ output_dir = os.path.join(
     os.path.dirname(__file__), os.pardir, 'data', 'semanticpointers')
 name = '{assoc}_{dimred}_{words}w_{d}d'.format(
     assoc=args.association_matrix[0], dimred=args.dimred[0],
-    words=pointers[0].shape[0], d=args.d[0])
+    words=pointers.shape[0], d=args.d[0])
 save_pointers(output_dir, name, pointers, id2word, word2id)
