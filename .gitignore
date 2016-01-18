@@ -10,3 +10,7 @@
 
 .doit.db
 data/raw/freeassoc
+data/RatModel#*.txt
+
+RatModel.cfg
+psywork
