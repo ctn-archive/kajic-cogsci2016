@@ -3,8 +3,8 @@ from nengo import spa
 
 def filter_valid(rat_items, valid_words):
     for item in rat_items:
-        cues_valid = all(w.lower() in valid_words for w in item.cues)
-        target_valid = item.target.lower() in valid_words
+        cues_valid = all(w in valid_words for w in item.cues)
+        target_valid = item.target in valid_words
         if cues_valid and target_valid:
             yield item
 
