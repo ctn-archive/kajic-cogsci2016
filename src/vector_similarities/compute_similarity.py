@@ -88,7 +88,7 @@ def get_similarities(W, w2i, prob, method):
         sims = np.dot(W[cue_indices], W.T)
         similarities = sims.sum(axis=0)
     else:
-        similarities = W[cue_indices]
+        similarities = W[cue_indices].sum(axis=0)
 
     return similarities
 
