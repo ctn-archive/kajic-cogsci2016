@@ -27,6 +27,20 @@ def task_gen_symmetric_association_matrix():
     }
 
 
+def task_gen_asymmetric_association_matrix():
+    return {
+        'actions': [
+            'scripts/generate_association_matrix.py freeassoc asymmetric'],
+        'file_dep': [
+            os.path.join('data', 'raw', 'freeassoc', file_['name'])
+            for file_ in datasets['freeassoc']['files']],
+        'targets': [
+            os.path.join(
+                'data', 'associationmatrices', 'freeassoc_asymmetric' + ext)
+            for ext in ['.npy', '.pkl']],
+    }
+
+
 def task_gen_semantic_pointers():
     return {
         'actions': [

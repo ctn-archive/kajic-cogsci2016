@@ -39,7 +39,7 @@ def load_free_association_data(path, column='FSG'):
 
         # extract norms
         for _, row in df_normed.iterrows():
-            cue, target = row['CUE'].lower(), row['TARGET'].lower()
+            cue, target = row['CUE'].upper(), row['TARGET'].upper()
             words.add(cue)
             words.add(target)
 

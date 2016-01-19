@@ -1,35 +1,51 @@
 import numpy as np
 import cPickle as pickle
+import os
 
-from data_processing.svd import cos_sim
 
+def load_rat_problems(name='problems'):
+    """Loads a list of 144 RAT items consisting of cues and targets.
+    
+    Parameters
+    ----------
+    name : str
+        Text file containing RAT items
 
-def load_rat_problems():
-    datapath = '../../data/rat/problems.txt'
+    Returns:
+    --------
+        A numpy array of characters.
+    """
+    path = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir,
+                        'data', 'rat')
+    datapath = os.path.join(path, name + '.txt')
+
     items = np.loadtxt(datapath, dtype=np.character)
 
     return items
 
 
-def load_vectors(filename):
+def load_vectors(name):
     """
     Function to load semantic pointers and mappings from the
     /data/semanticpointers/ directory.
     """
-    path = '../../data/semanticpointers/'
-    datapath = path + filename
+    matrix = 'associationmatrices'
+    if 'svd' in name:
+        matrix = 'semanticpointers'
 
-    mapping_path = datapath + '_map.pkl'
-    vectors_path = datapath + '_mat.npz'
+    path = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir,
+                        'data', matrix)
 
-    npvec = np.load(vectors_path)
-    vectors = npvec[npvec.keys()[0]]
+    mat_file = os.path.join(path, name + '.npy')
+    map_file = os.path.join(path, name + '.pkl')
 
-    with open(mapping_path, 'r') as f:
+    vectors = np.load(mat_file)
+
+    with open(map_file, 'r') as f:
+        keys = pickle.load(f)
         w2i = pickle.load(f)
-        i2w = pickle.load(f)
 
-    return vectors, w2i, i2w
+    return vectors, w2i, keys
 
 
 def all_words_in_vocab(problem, vocabulary):
@@ -44,56 +60,89 @@ def all_words_in_vocab(problem, vocabulary):
 
     return word_in_vocabulary
 
+
+def get_similarities(W, w2i, prob, method):
+    ''' Compute the similarity between the three cues and all words in the
+    vocabulary.
+
+    Parameters
+    ----------
+    W : ndarray
+        Association matrix or matrix of vectors
+    w2i : dict
+        Word to id dictionary
+    prob : list
+        Cues and the target
+    method : str
+        Name of the method used to generate representations
+
+    Returns:
+    --------
+    similarities : ndarray
+        1D vector containing similarities to all words, averaged accross cues
+    '''
+    c1, c2, c3, target = prob
+    cue_indices = [w2i[c1], w2i[c2], w2i[c3]]
+
+    if 'svd' in method:
+        sims = np.dot(W[cue_indices], W.T)
+        similarities = sims.sum(axis=0)
+    else:
+        similarities = W[cue_indices]
+
+    return similarities
+
+
 def compute_similarity(method, quiet=True):
-    # load RAT items as a list of lists
+    '''For a given method, computes the similarity between all the words and
+    the cues and finds the position of the target in sorted similarity values.
+
+    Parameters
+    ----------
+    method : str
+        Method used to create vectors.
+    quiet : bool
+        Print statistics
+
+    Returns:
+    --------
+    sim_target : ndarray
+        Similarity between the cues and the target for every RAT problem
+    sim_everything : ndarray
+        Similarity between the cues and all other words in vocabulary for every
+        RAT problem
+    targets : ndarray
+        Position of target for every problem.
+    '''
     rat_problems = load_rat_problems()
+    vectors, w2i, words = load_vectors(method)
 
-    # load word vocabulary as list and vectors as an ndarray
-    vectors, w2i, i2w = load_vectors(method)
-
-    similarities_target, similarities_everything = [], []
+    similarities_target = []
+    similarities_everything = []
     target_positions = []
 
-    nr_problems = 0
     total_problems = len(rat_problems)
 
     for problem in rat_problems:
-        # check the RAT words exist in the vocabulary
-        if not all_words_in_vocab(problem, w2i.keys()):
+        if not all_words_in_vocab(problem, words):
             continue
+        target = problem[-1]
 
-        nr_problems += 1
+        sims = get_similarities(vectors, w2i, problem, method)
 
-        c1, c2, c3, target = problem
+        similarities_everything.append(sims.mean())
+        similarities_target.append(sims[w2i[target]])
 
-        # get vectors for cues and target
-        cue_vectors = vectors[[w2i[c1], w2i[c2], w2i[c3]]]
-        target_vector = vectors[w2i[target]]
-
-        # cues -> target similarity
-        cue_target_sim = cos_sim(cue_vectors, target_vector)
-        similarities_target.append(cue_target_sim)
-
-        # cues -> all other words similarity
-        sims1 = cos_sim(cue_vectors[0], vectors)
-        sims2 = cos_sim(cue_vectors[1], vectors)
-        sims3 = cos_sim(cue_vectors[2], vectors)
-
-        similarities_words = sims1 + sims2 + sims3
-
-        # find the target position
+        # target position
         target_pos = lambda s, t: np.where(s.argsort()[::-1] == w2i[t])[0][0]
-        target_positions.append(target_pos(similarities_words, target))
-
-        cues_words_sim = [sims1.mean(), sims2.mean(), sims3.mean()]
-        similarities_everything.append(cues_words_sim)
+        target_positions.append(target_pos(sims, target))
 
     sim_target = np.array(similarities_target, dtype=np.float)
     sim_everything = np.array(similarities_everything, dtype=np.float)
     targets = np.array(target_positions, dtype=np.int)
 
-    if quiet:
-        print('%d/%d problems exist with the %s vocabulary.' % (nr_problems,
+    if not quiet:
+        print('%d/%d problems exist with the %s vocabulary.' % (len(targets),
               total_problems, method))
         print('Average similarity with the target: %.5f (std=%.3f)' %
               (sim_target.mean(), sim_target.std()))
@@ -104,7 +153,6 @@ def compute_similarity(method, quiet=True):
 
 
 if __name__ == '__main__':
-    method = 'svd_5018w_512d'
+    method = 'freeassoc_symmetric_svd_factorize_5018w_256d'
     
     st, se, targets = compute_similarity(method)
-
