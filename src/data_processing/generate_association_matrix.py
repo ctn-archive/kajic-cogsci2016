@@ -73,21 +73,24 @@ def gen_bigrams(words):
     word2id = {w: i for i, w in enumerate(id2word)}
     cs = itertools.product(string.ascii_lowercase, string.ascii_lowercase)
 
-    strength_mat = np.zeros((len(words), len(words)))
-    for m in Parallel(n_jobs=5)(
-            delayed(process_bigram_file)(c1, c2, word2id) for c1, c2 in cs):
-        strength_mat += m
+    path = os.path.join(
+        os.path.dirname(__file__), os.pardir, os.pardir, 'data',
+        'associatonmatrices', 'google-bigrams')
+    strength_mat = np.memmap(path, shape=(len(words), len(words)), mode='w+')
+    strength_mat.fill(0.)
+    Parallel(n_jobs=5)(
+        delayed(process_bigram_file)(c1, c2, word2id, strength_mat)
+        for c1, c2 in cs)
     return strength_mat
 
 
-def process_bigram_file(c1, c2, word2id):
+def process_bigram_file(c1, c2, word2id, output):
     template = os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, 'data', 'raw',
         'google', 'googlebooks-eng-all-2gram-20120701-{c}.gz')
     filename = template.format(c=c1 + c2)
     print(filename)
 
-    strength_mat = np.zeros((len(word2id), len(word2id)))
     with gzip.open(filename, 'rt') as f:
         for line in f:
             ngram, year, count, _ = line.split('\t')
@@ -96,8 +99,7 @@ def process_bigram_file(c1, c2, word2id):
             words = ngram.split(' ')
             if any(w not in word2id for w in words):
                 continue
-            strength_mat[word2id[words[0]], word2id[words[1]]] = int(count)
-    return strength_mat
+            output[word2id[words[0]], word2id[words[1]]] = int(count)
 
 
 def print_stats(mat):
