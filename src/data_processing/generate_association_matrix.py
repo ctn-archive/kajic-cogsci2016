@@ -82,7 +82,7 @@ def gen_bigrams(words):
 
 def process_bigram_file(c1, c2, word2id):
     template = os.path.join(
-        os.path.dirname(__file__), os.pardir, os.pardir, 'data', 'new', 'raw',
+        os.path.dirname(__file__), os.pardir, os.pardir, 'data', 'raw',
         'google', 'googlebooks-eng-all-2gram-20120701-{c}.gz')
     filename = template.format(c=c1 + c2)
     print(filename)
