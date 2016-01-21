@@ -80,7 +80,6 @@ def gen_bigrams(words):
         path, shape=(len(words), len(words)), mode='w+',
         dtype='uint32')
     strength_mat.fill(0.)
-    cs = [('a', 'a')]
     Parallel(n_jobs=5)(
         delayed(process_bigram_file)(c1, c2, word2id, strength_mat)
         for c1, c2 in cs)
