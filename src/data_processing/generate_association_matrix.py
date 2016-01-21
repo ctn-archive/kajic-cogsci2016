@@ -75,13 +75,16 @@ def gen_bigrams(words):
 
     path = os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, 'data',
-        'associatonmatrices', 'google-bigrams')
-    strength_mat = np.memmap(path, shape=(len(words), len(words)), mode='w+')
+        'associationmatrices', 'google-bigrams')
+    strength_mat = np.memmap(
+        path, shape=(len(words), len(words)), mode='w+',
+        dtype='uint32')
     strength_mat.fill(0.)
+    cs = [('a', 'a')]
     Parallel(n_jobs=5)(
         delayed(process_bigram_file)(c1, c2, word2id, strength_mat)
         for c1, c2 in cs)
-    return strength_mat
+    return strength_mat, id2word, word2id
 
 
 def process_bigram_file(c1, c2, word2id, output):
@@ -94,11 +97,12 @@ def process_bigram_file(c1, c2, word2id, output):
     with gzip.open(filename, 'rt') as f:
         for line in f:
             ngram, year, count, _ = line.split('\t')
-            if year != 2008:
+            if year != '2008':
                 continue
-            words = ngram.split(' ')
+            words = ngram.upper().split(' ')
             if any(w not in word2id for w in words):
                 continue
+            print(words)
             output[word2id[words[0]], word2id[words[1]]] = int(count)
 
 
