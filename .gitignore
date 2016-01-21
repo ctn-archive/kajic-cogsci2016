@@ -10,6 +10,7 @@
 
 .doit.db
 data/raw/freeassoc
+data/raw/google
 data/RatModel#*.txt
 
 RatModel.cfg

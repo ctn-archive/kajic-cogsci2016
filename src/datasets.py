@@ -1,6 +1,8 @@
+import itertools
 import os
 import os.path
 import urllib
+import string
 import sys
 
 import pandas as pd
@@ -54,6 +56,29 @@ def load_free_association_data(path, column='FSG'):
 
 
 datasets = {
+    'google': {
+        'description': 'Google n-gram dataset',
+        'moreinfo':
+            'http://storage.googleapis.com/books/ngrams/books/datasetsv2.html',
+        'files': [
+            {
+                'name': 'googlebooks-eng-all-1gram-20120701-' + c + '.gz',
+                'url':
+                    'http://storage.googleapis.com/books/ngrams/books/'
+                    'googlebooks-eng-all-1gram-20120701-' + c + '.gz',
+            }
+            for c in string.ascii_lowercase
+        ] + [
+            {
+                'name': 'googlebooks-eng-all-2gram-20120701-' + c1 + c2 + '.gz',
+                'url':
+                    'http://storage.googleapis.com/books/ngrams/books/'
+                    'googlebooks-eng-all-2gram-20120701-' + c1 + c2 + '.gz',
+            }
+            for c1, c2 in itertools.product(
+                string.ascii_lowercase, string.ascii_lowercase)
+        ]
+    },
     'freeassoc': {
         'description': 'University of South Florida Free Association Norms',
         'moreinfo': 'http://w3.usf.edu/FreeAssociation/',

@@ -13,6 +13,16 @@ def task_fetch_free_association_data():
     }
 
 
+def task_fetch_google_data():
+    return {
+        'actions': ['scripts/fetch_data.py google'],
+        'targets': [
+            os.path.join('data', 'raw', 'google', file_['name'])
+            for file_ in datasets['freeassoc']['files']],
+        'uptodate': [True],  # only download data if not existent
+    }
+
+
 def task_gen_symmetric_association_matrix():
     return {
         'actions': [
