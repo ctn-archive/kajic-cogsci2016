@@ -101,7 +101,6 @@ def process_bigram_file(c1, c2, word2id, output):
             words = ngram.upper().split(' ')
             if any(w not in word2id for w in words):
                 continue
-            print(words)
             output[word2id[words[0]], word2id[words[1]]] = int(count)
 
 
