@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir, 'src'))
 
 import argparse
 
-from datasets import datasets
+from datasets import datasets, load_free_association_data
 from data_processing import generate_association_matrix
 
 
@@ -21,10 +21,12 @@ parser.add_argument(
     'method', nargs=1, help="Method to generate the association matrix.")
 args = parser.parse_args()
 
-
-input_dir = os.path.join(
-    os.path.dirname(__file__), os.pardir, 'data', 'raw', args.dataset[0])
-data = datasets[args.dataset[0]]['loader'](input_dir)
+basedir = os.path.join(os.path.dirname(__file__), os.pardir, 'data', 'raw')
+input_dir = os.path.join(basedir, args.dataset[0])
+if args.dataset[0] == 'google':
+    data = load_free_association_data(os.path.join(basedir, 'freeassoc'))[:1]
+else:
+    data = datasets[args.dataset[0]]['loader'](input_dir)
 method = getattr(generate_association_matrix, 'gen_' + args.method[0])
 assoc_mat = method(*data)
 

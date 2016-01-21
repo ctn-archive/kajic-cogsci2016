@@ -1,9 +1,14 @@
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
 import cPickle as pickle
+import gzip
+import itertools
 import os
+import os.path
+import string
+
+import numpy as np
 
 
 def gen_asymmetric(words, association_database, diag=1.):
@@ -60,6 +65,30 @@ def gen_symmetric(words, association_database, diag=1.):
     asymetric, id2word, word2id = gen_asymmetric(
         words, association_database, diag=diag)
     return (asymetric + asymetric.T) / 2., id2word, word2id
+
+
+def gen_bigrams(words, unused_association_database):
+    id2word = list(words)
+    word2id = {w: i for i, w in enumerate(id2word)}
+    strength_mat = np.zeros((len(words), len(words)))
+
+    template = os.path.join(
+        os.path.dirname(__file__), os.pardir, os.pardir, 'data', 'new', 'raw',
+        'google', 'googlebooks-eng-all-2gram-2012-0701-{c}.gz')
+    cs = itertools.product(string.ascii_lowercase, string.ascii_lowercase)
+    for c1, c2 in cs:
+        filename = template.format(c=c1 + c2)
+        print(filename)
+        with gzip.open(filename, 'rt') as f:
+            for line in f:
+                ngram, year, count, _ = line.split('\t')
+                if year != 2008:
+                    continue
+                words = ngram.split(' ')
+                if any(w not in word2id for w in words):
+                    continue
+                strength_mat[word2id[words[0]], word2id[words[1]]] = int(count)
+    return strength_mat
 
 
 def print_stats(mat):
