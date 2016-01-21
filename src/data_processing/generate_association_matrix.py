@@ -8,6 +8,7 @@ import os
 import os.path
 import string
 
+from joblib import Parallel, delayed
 import numpy as np
 
 
@@ -67,27 +68,35 @@ def gen_symmetric(words, association_database, diag=1.):
     return (asymetric + asymetric.T) / 2., id2word, word2id
 
 
-def gen_bigrams(words, unused_association_database):
+def gen_bigrams(words):
     id2word = list(words)
     word2id = {w: i for i, w in enumerate(id2word)}
-    strength_mat = np.zeros((len(words), len(words)))
+    cs = itertools.product(string.ascii_lowercase, string.ascii_lowercase)
 
+    strength_mat = np.zeros((len(words), len(words)))
+    for m in Parallel(n_jobs=5)(
+            delayed(process_bigram_file)(c1, c2, word2id) for c1, c2 in cs):
+        strength_mat += m
+    return strength_mat
+
+
+def process_bigram_file(c1, c2, word2id):
     template = os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, 'data', 'new', 'raw',
-        'google', 'googlebooks-eng-all-2gram-2012-0701-{c}.gz')
-    cs = itertools.product(string.ascii_lowercase, string.ascii_lowercase)
-    for c1, c2 in cs:
-        filename = template.format(c=c1 + c2)
-        print(filename)
-        with gzip.open(filename, 'rt') as f:
-            for line in f:
-                ngram, year, count, _ = line.split('\t')
-                if year != 2008:
-                    continue
-                words = ngram.split(' ')
-                if any(w not in word2id for w in words):
-                    continue
-                strength_mat[word2id[words[0]], word2id[words[1]]] = int(count)
+        'google', 'googlebooks-eng-all-2gram-20120701-{c}.gz')
+    filename = template.format(c=c1 + c2)
+    print(filename)
+
+    strength_mat = np.zeros((len(word2id), len(word2id)))
+    with gzip.open(filename, 'rt') as f:
+        for line in f:
+            ngram, year, count, _ = line.split('\t')
+            if year != 2008:
+                continue
+            words = ngram.split(' ')
+            if any(w not in word2id for w in words):
+                continue
+            strength_mat[word2id[words[0]], word2id[words[1]]] = int(count)
     return strength_mat
 
 
