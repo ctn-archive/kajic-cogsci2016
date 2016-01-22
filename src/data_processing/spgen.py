@@ -10,7 +10,9 @@ def from_assoc_matrix(assoc_matrix, dimred, n_dim):
     assoc_matrix = np.copy(assoc_matrix)
     np.fill_diagonal(assoc_matrix, 1.)
     reduced = dimred(assoc_matrix, n_dim)
-    reduced /= np.linalg.norm(reduced, axis=1)[:, None]
+    norms = np.linalg.norm(reduced, axis=1)
+    norms = np.where(norms, norms, np.ones(len(norms)))
+    reduced /= norms[:, None]
     return reduced
 
 
