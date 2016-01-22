@@ -68,6 +68,42 @@ def gen_symmetric(words, association_database, diag=1.):
     return (asymetric + asymetric.T) / 2., id2word, word2id
 
 
+def gen_1grams(words):
+    id2word = list(words)
+    word2id = {w: i for i, w in enumerate(id2word)}
+    path = os.path.join(
+        os.path.dirname(__file__), os.pardir, os.pardir, 'data',
+        'associationmatrices', 'google-1grams')
+    strength_mat = np.memmap(
+        path, shape=(len(words), len(words)), mode='w+',
+        dtype='uint32')
+    strength_mat.fill(0.)
+    Parallel(n_jobs=5)(
+        delayed(process_1gram_file)(c, word2id, strength_mat)
+        for c in string.ascii_lowercase)
+    return strength_mat, id2word, word2id
+
+
+def process_1gram_file(c, word2id, output):
+    template = os.path.join(
+        os.path.dirname(__file__), os.pardir, os.pardir, 'data', 'raw',
+        'google', 'googlebooks-eng-all-1gram-20120701-{c}.gz')
+    filename = template.format(c=c)
+    print(filename)
+
+    with gzip.open(filename, 'rt') as f:
+        for line in f:
+            ngram, year, count, _ = line.split('\t')
+            if year != '2008':
+                continue
+            ngram = ngram.upper()
+            for i in range(1, len(ngram) - 1):
+                words = (ngram[:i], ngram[i:])
+                if any(w not in word2id for w in words):
+                    continue
+                output[word2id[words[0]], word2id[words[1]]] = int(count)
+
+
 def gen_bigrams(words):
     id2word = list(words)
     word2id = {w: i for i, w in enumerate(id2word)}
