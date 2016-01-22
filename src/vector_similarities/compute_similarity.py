@@ -90,6 +90,8 @@ def get_similarities(W, w2i, prob, method):
     else:
         similarities = W[cue_indices].sum(axis=0)
 
+    similarities[cue_indices] = 0.
+
     return similarities
 
 
