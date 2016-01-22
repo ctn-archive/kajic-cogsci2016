@@ -81,5 +81,6 @@ def task_svd():
                     'scripts/generate_semantic_pointers.py {0} svd_factorize '
                     '{1}'.format(assocmat, d)],
                 'file_dep': assocmat_files(assocmat),
-                'targets': sp_files(assocmat + '_5018w_' + str(d) + 'd'),
+                'targets': sp_files(
+                    assocmat + '_svd_factorize_5018w_' + str(d) + 'd'),
             }
