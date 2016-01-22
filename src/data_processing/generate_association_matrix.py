@@ -68,6 +68,20 @@ def gen_symmetric(words, association_database, diag=1.):
     return (asymetric + asymetric.T) / 2., id2word, word2id
 
 
+def tr_normalize(mat):
+    norms = np.linalg.norm(mat, axis=1)
+    norms = np.where(norms, norms, np.ones(len(norms)))
+    return mat / norms[:, None]
+
+
+def tr_symmetrify(mat):
+    return (mat + mat.T) / 2.
+
+
+def tr_add(mat1, mat2):
+    return mat1 + mat2
+
+
 def gen_1grams(words):
     id2word = list(words)
     word2id = {w: i for i, w in enumerate(id2word)}
