@@ -1,3 +1,4 @@
+from nengo import spa
 import numpy as np
 from numpy.linalg import svd
 
@@ -23,3 +24,10 @@ def svd_factorize(W, nr_dim):
     ur = u[:, :nr_dim]
     sr = np.diag(np.sqrt(s[:nr_dim]))
     return np.dot(ur, sr)
+
+
+def randomize(W, nr_dim):
+    vocab = spa.Vocabulary(nr_dim)
+    for i in range(len(W)):
+        vocab.parse('V' + str(i))
+    return vocab.vectors

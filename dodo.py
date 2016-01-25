@@ -84,3 +84,14 @@ def task_svd():
                 'targets': sp_files(
                     assocmat + '_svd_factorize_5018w_' + str(d) + 'd'),
             }
+
+
+def task_random_pointers():
+    return {
+        'actions': [
+            'scripts/generate_semantic_pointers.py freeassoc_asymmetric '
+            'randomize 256'],
+        'file_dep': assocmat_files('freeassoc_asymmetric'),
+        'targets': sp_files(
+            'freeassoc_asymmetric_randomize_5018w_256d'),
+    }
