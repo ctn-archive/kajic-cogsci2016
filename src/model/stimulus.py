@@ -11,9 +11,8 @@ def filter_valid(rat_items, valid_words):
 
 
 class Stimulus(object):
-    def __init__(self, rat_items, vocab, item_duration=2.):
+    def __init__(self, rat_items, item_duration=2.):
         self.rat_items = list(rat_items)
-        self.vocab = vocab
         self.item_duration = item_duration
 
     @property
@@ -30,7 +29,7 @@ class Stimulus(object):
 
     def create_cue_fn(self, index):
         def cue(t):
-            return self.vocab.parse(self.rat_items[self.t2idx(t)].cues[index]).v
+            return self.rat_items[self.t2idx(t)].cues[index]
         return cue
 
     def target(self, t):
@@ -39,25 +38,30 @@ class Stimulus(object):
 
 class StimulusModule(spa.module.Module):
     def __init__(
-            self, stimulus, d, vocab=None, label=None, seed=None,
+            self, stimulus, vocab, label=None, seed=None,
             add_to_container=None):
         super(StimulusModule, self).__init__(label, seed, add_to_container)
 
-        if vocab is None:
-            vocab = d
+        d = vocab.dimensions
+
+        def vocab_parse(fn):
+            return lambda x: vocab.parse(fn(x)).v
 
         with self:
-            self.cue1 = spa.State(d)
-            self.cue2 = spa.State(d)
-            self.cue3 = spa.State(d)
+            self.cue1 = spa.State(d, vocab=vocab)
+            self.cue2 = spa.State(d, vocab=vocab)
+            self.cue3 = spa.State(d, vocab=vocab)
 
-            self.cue1_input = nengo.Node(stimulus.create_cue_fn(0))
+            self.cue1_input = nengo.Node(
+                vocab_parse(stimulus.create_cue_fn(0)))
             nengo.Connection(self.cue1_input, self.cue1.input)
 
-            self.cue2_input = nengo.Node(stimulus.create_cue_fn(1))
+            self.cue2_input = nengo.Node(
+                vocab_parse(stimulus.create_cue_fn(1)))
             nengo.Connection(self.cue2_input, self.cue2.input)
 
-            self.cue3_input = nengo.Node(stimulus.create_cue_fn(2))
+            self.cue3_input = nengo.Node(
+                vocab_parse(stimulus.create_cue_fn(2)))
             nengo.Connection(self.cue3_input, self.cue1.input)
 
         self.outputs = dict(

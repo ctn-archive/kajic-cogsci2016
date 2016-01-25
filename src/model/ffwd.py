@@ -39,9 +39,11 @@ class FfwdRat(spa.module.Module):
 
 class FfwdConnectionsRat(spa.module.Module):
     def __init__(
-            self, assoc, d, vocab, label=None, seed=None,
+            self, assoc, vocab, label=None, seed=None,
             add_to_container=None):
         super(FfwdConnectionsRat, self).__init__(label, seed, add_to_container)
+
+        d = vocab.dimensions
 
         assoc = np.copy(assoc)
         np.fill_diagonal(assoc, 0.)
