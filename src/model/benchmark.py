@@ -11,6 +11,7 @@ from random import shuffle
 import ctn_benchmark
 import nengo
 from nengo import spa
+import numpy as np
 
 from data_processing.generate_association_matrix import load_assoc_mat
 from data_processing.spgen import load_pointers
@@ -86,9 +87,12 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
 
         with spa.SPA(seed=p.model_seed) as model:
             # set up vocab
-            vocab = model.get_default_vocab(p.d)
-            for i, pointer in enumerate(pointers):
-                vocab.add(i2w[i].upper(), pointer)
+            self.vocab = model.get_default_vocab(p.d)
+            for i, word in enumerate(i2w):
+                sanitized = word.upper().replace(' ', '_').replace(
+                    '+', '_').replace('-', '_').replace('&', '_').replace(
+                    "'", '_')
+                self.vocab.parse(sanitized)
 
             # set up model
             self.stimulus = Stimulus(self.rat_items)
@@ -97,15 +101,23 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
             nengo.Connection(model.stimulus.cue1.output, model.rat_model.cue1)
             nengo.Connection(model.stimulus.cue2.output, model.rat_model.cue2)
             nengo.Connection(model.stimulus.cue3.output, model.rat_model.cue3)
-            self.p_output = nengo.Probe(model.rat_model.rat_state.output)
+            self.p_output = nengo.Probe(
+                model.rat_model.rat_state.output, synapse=0.01)
 
         return model
 
     def evaluate(self, p, sim, plt):
         sim.run(self.stimulus.total_duration)
-        return dict(
+        result = dict(
+            trange=sim.trange(),
             output=sim.data[self.p_output],
-            rat_items=[x.id for x in self.rat_items])
+            rat_items=[x.id for x in self.rat_items],
+            vocab_keys=self.vocab.keys,
+            vocab_vectors=self.vocab.vectors)
+        data_dir = os.path.join(
+            os.path.dirname(__file__), os.pardir, os.pardir, 'data')
+        np.savez(os.path.join(data_dir, 'out.npz'), **result)
+        return result
 
 if __name__ == '__main__':
-    RatModel().run()
+    ConnectionsRatModel().run()
