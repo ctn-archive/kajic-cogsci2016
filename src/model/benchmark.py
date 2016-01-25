@@ -17,7 +17,7 @@ from data_processing.generate_association_matrix import load_assoc_mat
 from data_processing.spgen import load_pointers
 from data_processing.rat import load_rat_items
 from model.stimulus import filter_valid, Stimulus, StimulusModule
-from model.ffwd import FfwdRat
+from model.ffwd import FfwdRat, FfwdConnectionsRat
 
 
 class RatModel(ctn_benchmark.Benchmark):
@@ -80,7 +80,7 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
         data_dir = os.path.join(
             os.path.dirname(__file__), os.pardir, os.pardir, 'data')
         sp_path = os.path.join(data_dir, 'associationmatrices')
-        pointers, i2w, _ = load_assoc_mat(sp_path, p.assocmat)
+        assoc, i2w, _ = load_assoc_mat(sp_path, p.assocmat)
 
         rat_path = os.path.join(data_dir, 'rat', p.ratfile)
         self.rat_items = list(filter_valid(load_rat_items(rat_path), i2w))
@@ -95,14 +95,20 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
                 self.vocab.parse(sanitized)
 
             # set up model
-            self.stimulus = Stimulus(self.rat_items)
-            model.stimulus = StimulusModule(self.stimulus, p.d)
-            model.rat_model = FfwdRat(p.d)
+            self.stimulus = Stimulus(self.rat_items, self.vocab)
+            model.stimulus = StimulusModule(self.stimulus, p.d, self.vocab)
+            model.rat_model = FfwdConnectionsRat(assoc, p.d, self.vocab)
             nengo.Connection(model.stimulus.cue1.output, model.rat_model.cue1)
             nengo.Connection(model.stimulus.cue2.output, model.rat_model.cue2)
             nengo.Connection(model.stimulus.cue3.output, model.rat_model.cue3)
             self.p_output = nengo.Probe(
                 model.rat_model.rat_state.output, synapse=0.01)
+            self.p_cue1 = nengo.Probe(
+                model.stimulus.cue1.output, synapse=0.01)
+            self.p_cue2 = nengo.Probe(
+                model.stimulus.cue2.output, synapse=0.01)
+            self.p_cue3 = nengo.Probe(
+                model.stimulus.cue3.output, synapse=0.01)
 
         return model
 
@@ -111,6 +117,9 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
         result = dict(
             trange=sim.trange(),
             output=sim.data[self.p_output],
+            cue1=sim.data[self.p_cue1],
+            cue2=sim.data[self.p_cue2],
+            cue3=sim.data[self.p_cue3],
             rat_items=[x.id for x in self.rat_items],
             vocab_keys=self.vocab.keys,
             vocab_vectors=self.vocab.vectors)

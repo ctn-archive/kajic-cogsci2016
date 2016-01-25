@@ -44,7 +44,7 @@ class FfwdConnectionsRat(spa.module.Module):
         super(FfwdConnectionsRat, self).__init__(label, seed, add_to_container)
 
         assoc = np.copy(assoc)
-        assoc.fill_diagonal(0.)
+        np.fill_diagonal(assoc, 0.)
         tr = np.dot(vocab.vectors.T, np.dot(assoc.T, vocab.vectors)) / 3.
 
         with self:

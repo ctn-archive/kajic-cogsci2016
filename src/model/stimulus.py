@@ -1,3 +1,4 @@
+import nengo
 from nengo import spa
 
 
@@ -10,8 +11,9 @@ def filter_valid(rat_items, valid_words):
 
 
 class Stimulus(object):
-    def __init__(self, rat_items, item_duration=2.):
+    def __init__(self, rat_items, vocab, item_duration=2.):
         self.rat_items = list(rat_items)
+        self.vocab = vocab
         self.item_duration = item_duration
 
     @property
@@ -24,11 +26,11 @@ class Stimulus(object):
 
     def t2idx(self, t):
         """Convert time to item index."""
-        return t // self.item_duration
+        return min(self.n_items - 1, int(t // self.item_duration))
 
     def create_cue_fn(self, index):
         def cue(t):
-            return self.rat_items[self.t2idx(t)].cues[index]
+            return self.vocab.parse(self.rat_items[self.t2idx(t)].cues[index]).v
         return cue
 
     def target(self, t):
@@ -49,10 +51,14 @@ class StimulusModule(spa.module.Module):
             self.cue2 = spa.State(d)
             self.cue3 = spa.State(d)
 
-            self.stimulus = spa.Input(
-                cue1=stimulus.create_cue_fn(0),
-                cue2=stimulus.create_cue_fn(1),
-                cue3=stimulus.create_cue_fn(2))
+            self.cue1_input = nengo.Node(stimulus.create_cue_fn(0))
+            nengo.Connection(self.cue1_input, self.cue1.input)
+
+            self.cue2_input = nengo.Node(stimulus.create_cue_fn(1))
+            nengo.Connection(self.cue2_input, self.cue2.input)
+
+            self.cue3_input = nengo.Node(stimulus.create_cue_fn(2))
+            nengo.Connection(self.cue3_input, self.cue1.input)
 
         self.outputs = dict(
             cue1=(self.cue1.output, vocab),
