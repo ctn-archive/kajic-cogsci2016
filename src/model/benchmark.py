@@ -133,12 +133,13 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
     def evaluate(self, p, sim, plt):
         sim.run(self.stimulus.total_duration)
         if p.rmse:
-            similarities = np.dot(sim.vocab.vectors, sim.data[self.p_output].T)
+            similarities = np.dot(
+                self.vocab.vectors, sim.data[self.p_output].T)
             selection_intervals = [(0.5, 1.9), (2.5, 3.9), (4.5, 5.9)]
             m_sim = np.asarray([np.mean(
                 similarities[:, np.logical_and(
-                    data['trange'] >= l,
-                    data['trange'] < u)], axis=1)
+                    sim.trange() >= l,
+                    sim.trange() < u)], axis=1)
                 for (l, u) in selection_intervals])
             result = dict(m_sim=m_sim)
         else:
