@@ -17,3 +17,4 @@ RatModel.cfg
 psywork
 data/associationmatrices/google-1grams
 data/associationmatrices/google-bigrams
+data/ConnectionsRatModel#*.txt
