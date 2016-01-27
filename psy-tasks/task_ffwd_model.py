@@ -21,9 +21,9 @@ pspace = Param(
 min_items = 1
 max_splits = n_subjects
 
-sharcnet_nodes = ['narwhal', 'bull', 'kraken', 'saw']
+sharcnet_nodes = ['narwhal', 'bul', 'kraken', 'saw']
 if any(platform.node().startswith(x) for x in sharcnet_nodes):
-    workdir = '/work/' + os.getlogin() + '/rat'
+    workdir = '/work/jgosmann/rat'
     scheduler = Sqsub(workdir)
     scheduler_args = {
         'timelimit': '60m',
