@@ -31,4 +31,4 @@ if any(platform.node().startswith(x) for x in sharcnet_nodes):
     }
 
 def execute(**kwargs):
-    return RatModel().run(**kwargs)
+    return RatModel().run(rmse=True, **kwargs)
