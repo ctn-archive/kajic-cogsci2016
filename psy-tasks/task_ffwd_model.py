@@ -11,24 +11,24 @@ import numpy as np
 from psyrun import Param
 from psyrun.scheduler import Sqsub
 
-from model.benchmark import RatModel
+from model.benchmark import ConnectionsRatModel
 
-n_subjects = 100
+neurons_per_dimension=[5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
 pspace = Param(
-    exp_seed=np.arange(n_subjects),
-    model_seed=np.arange(n_subjects, 2 * n_subjects))
+    neurons_per_dimension=neurons_per_dimension,
+    seed=923)
 
 min_items = 1
-max_splits = n_subjects
+max_splits = 100
 
-sharcnet_nodes = ['narwhal', 'bull', 'kraken', 'saw']
+sharcnet_nodes = ['narwhal', 'bul', 'kraken', 'saw']
 if any(platform.node().startswith(x) for x in sharcnet_nodes):
-    workdir = '/work/' + os.getlogin() + '/rat'
+    workdir = '/work/jgosmann/rat'
     scheduler = Sqsub(workdir)
     scheduler_args = {
         'timelimit': '60m',
-        'memory' : '1024M',
+        'memory' : '6G',
     }
 
 def execute(**kwargs):
-    return RatModel().run(**kwargs)
+    return ConnectionsRatModel().run(rmse=True, **kwargs)

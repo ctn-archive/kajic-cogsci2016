@@ -67,15 +67,17 @@ class RatModel(ctn_benchmark.Benchmark):
 
 class ConnectionsRatModel(ctn_benchmark.Benchmark):
     def params(self):
-        self.default("number of dimensions", d=256)
+        self.default("neurons per dimension", neurons_per_dimension=50)
+        self.default("number of dimensions", d=5120)
         self.default(
             "association matrix", assocmat='freeassoc_asymmetric')
         self.default(
             "semantic pointer file",
-            sp_file='freeassoc_asymmetric_randomize_5018w_256d')
+            sp_file='freeassoc_asymmetric_randomize_orthonormal_5018w_5120d')
         self.default("rat problems", ratfile='example.txt')
         self.default("experiment seed", exp_seed=23)
         self.default("model seed", model_seed=42)
+        self.default("running to record rmse", rmse=False)
 
     def model(self, p):
         random.seed(p.exp_seed)
@@ -92,6 +94,10 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
         self.rat_items = list(filter_valid(load_rat_items(rat_path), i2w))
 
         with spa.SPA(seed=p.model_seed) as model:
+            model.config[nengo.Connection].solver = nengo.solvers.LstsqL2(
+                solver=nengo.solvers.randomized_svd)
+
+            self.model = model
             # set up vocab
             self.vocab = model.get_default_vocab(p.d)
             for i, pointer in enumerate(pointers):
@@ -102,8 +108,11 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
 
             # set up model
             self.stimulus = Stimulus(self.rat_items)
-            model.stimulus = StimulusModule(self.stimulus, self.vocab)
-            model.rat_model = FfwdConnectionsRat(assoc, self.vocab)
+            model.stimulus = StimulusModule(
+                self.stimulus, self.vocab, p.neurons_per_dimension)
+            model.rat_model = FfwdConnectionsRat(
+                assoc, self.vocab,
+                neurons_per_dimension=p.neurons_per_dimension)
             nengo.Connection(model.stimulus.cue1.output, model.rat_model.cue1)
             nengo.Connection(model.stimulus.cue2.output, model.rat_model.cue2)
             nengo.Connection(model.stimulus.cue3.output, model.rat_model.cue3)
@@ -115,24 +124,45 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
                 model.stimulus.cue2.output, synapse=0.01)
             self.p_cue3 = nengo.Probe(
                 model.stimulus.cue3.output, synapse=0.01)
+            self.p_spikes = nengo.Probe(
+                model.rat_model.rat_state.state_ensembles.ensembles[0].neurons,
+                'spikes')
 
         return model
 
     def evaluate(self, p, sim, plt):
         sim.run(self.stimulus.total_duration)
-        result = dict(
-            trange=sim.trange(),
-            output=sim.data[self.p_output],
-            cue1=sim.data[self.p_cue1],
-            cue2=sim.data[self.p_cue2],
-            cue3=sim.data[self.p_cue3],
-            rat_items=[x.id for x in self.rat_items],
-            vocab_keys=self.vocab.keys,
-            vocab_vectors=self.vocab.vectors)
-        data_dir = os.path.join(
-            os.path.dirname(__file__), os.pardir, os.pardir, 'data')
-        np.savez(os.path.join(data_dir, 'out.npz'), **result)
+        if p.rmse:
+            similarities = np.dot(
+                self.vocab.vectors, sim.data[self.p_output].T)
+            selection_intervals = [(0.5, 1.9), (2.5, 3.9), (4.5, 5.9)]
+            m_sim = np.asarray([np.mean(
+                similarities[:, np.logical_and(
+                    sim.trange() >= l,
+                    sim.trange() < u)], axis=1)
+                for (l, u) in selection_intervals])
+            result = dict(m_sim=m_sim)
+        else:
+            sort_indices = nengo.utils.ensemble.sorted_neurons(
+                self.model.rat_model.rat_state.state_ensembles.ensembles[0],
+                sim, 1000)
+            result = dict(
+                trange=sim.trange(),
+                output=sim.data[self.p_output],
+                cue1=sim.data[self.p_cue1],
+                cue2=sim.data[self.p_cue2],
+                cue3=sim.data[self.p_cue3],
+                rat_items=[x.id for x in self.rat_items],
+                vocab_keys=self.vocab.keys,
+                vocab_vectors=self.vocab.vectors,
+                spikes=sim.data[self.p_spikes],
+                sort_indices=sort_indices)
+            data_dir = os.path.join(
+                os.path.dirname(__file__), os.pardir, os.pardir, 'data')
+            np.savez(
+                os.path.join(data_dir, 'FfwdConnectionsRat.npz'), **result)
         return result
 
 if __name__ == '__main__':
+    print nengo.__file__
     ConnectionsRatModel().run()
