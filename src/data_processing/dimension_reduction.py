@@ -31,3 +31,14 @@ def randomize(W, nr_dim):
     for i in range(len(W)):
         vocab.parse('V' + str(i))
     return vocab.vectors
+
+
+def randomize_orthonormal(W, nr_dim):
+    projection = np.random.randn(nr_dim, nr_dim)
+    projection /= np.linalg.norm(projection, axis=1)[:, None]
+
+    for i in range(1, nr_dim):
+        projection[i] -= np.dot(projection[:i].T, np.dot(
+            projection[:i], projection[i]))
+        projection[i] /= np.linalg.norm(projection[i])
+    return projection[:len(W), :]
