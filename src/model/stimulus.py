@@ -38,7 +38,7 @@ class Stimulus(object):
 
 class StimulusModule(spa.module.Module):
     def __init__(
-            self, stimulus, vocab, label=None, seed=None,
+            self, stimulus, vocab, neurons_per_dimension, label=None, seed=None,
             add_to_container=None):
         super(StimulusModule, self).__init__(label, seed, add_to_container)
 
@@ -48,9 +48,15 @@ class StimulusModule(spa.module.Module):
             return lambda x: vocab.parse(fn(x)).v
 
         with self:
-            self.cue1 = spa.State(d, vocab=vocab)
-            self.cue2 = spa.State(d, vocab=vocab)
-            self.cue3 = spa.State(d, vocab=vocab)
+            self.cue1 = spa.State(
+                d, subdimensions=64,
+                neurons_per_dimension=neurons_per_dimension, vocab=vocab)
+            self.cue2 = spa.State(
+                d, subdimensions=64,
+                neurons_per_dimension=neurons_per_dimension, vocab=vocab)
+            self.cue3 = spa.State(
+                d, subdimensions=64,
+                neurons_per_dimension=neurons_per_dimension, vocab=vocab)
 
             self.cue1_input = nengo.Node(
                 vocab_parse(stimulus.create_cue_fn(0)))

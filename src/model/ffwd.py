@@ -39,7 +39,7 @@ class FfwdRat(spa.module.Module):
 
 class FfwdConnectionsRat(spa.module.Module):
     def __init__(
-            self, assoc, vocab, label=None, seed=None,
+            self, assoc, vocab, neurons_per_dimension, label=None, seed=None,
             add_to_container=None):
         super(FfwdConnectionsRat, self).__init__(label, seed, add_to_container)
 
@@ -53,7 +53,9 @@ class FfwdConnectionsRat(spa.module.Module):
             self.cue1 = nengo.Node(size_in=d)
             self.cue2 = nengo.Node(size_in=d)
             self.cue3 = nengo.Node(size_in=d)
-            self.rat_state = spa.State(d, vocab=vocab)
+            self.rat_state = spa.State(
+                d, subdimensions=64,
+                neurons_per_dimension=neurons_per_dimension, vocab=vocab)
 
             nengo.Connection(
                 self.cue1, self.rat_state.input, synapse=None,
