@@ -11,7 +11,7 @@ import numpy as np
 from psyrun import Param
 from psyrun.scheduler import Sqsub
 
-from model.benchmark import ConnecitonsRatModel
+from model.benchmark import ConnectionsRatModel
 
 neurons_per_dimension=[5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
 pspace = Param(
@@ -31,4 +31,4 @@ if any(platform.node().startswith(x) for x in sharcnet_nodes):
     }
 
 def execute(**kwargs):
-    return RatModel().run(rmse=True, **kwargs)
+    return ConnectionsRatModel().run(rmse=True, **kwargs)
