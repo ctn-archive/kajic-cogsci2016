@@ -1,5 +1,7 @@
 # Towards Biologically Plausible Representation of Word Associations
 
+[Associated data files can be found on figshare.](https://dx.doi.org/10.6084/m9.figshare.2066799)
+
 ## Reproducing plots and figures
 
 ### Requirements
