@@ -8,6 +8,15 @@ import sys
 import pandas as pd
 
 
+def get_dataset_path(name, dataset):
+    if 'path' in dataset:
+        path = dataset['path']
+    else:
+        path = os.path.join(os.path.dirname(
+            __file__), os.pardir, 'data', 'raw', name)
+    return path
+
+
 def load_free_association_data(path, column='FSG'):
     """Loads the free association data from `path`.
 
@@ -56,6 +65,31 @@ def load_free_association_data(path, column='FSG'):
 
 
 datasets = {
+    'google-processed': {
+        'description': 'Processed Google n-gram dataset',
+        'moreinfo': 'See CogSci paper.',
+        'path': os.path.join(
+            os.path.dirname(__file__), os.pardir, 'data',
+            'associationmatrices'),
+        'files': [
+            {
+                'name': 'google_1grams.npy',
+                'url': 'https://ndownloader.figshare.com/files/3676104'
+            },
+            {
+                'name': 'google_1grams.pkl',
+                'url': 'https://ndownloader.figshare.com/files/3676107'
+            },
+            {
+                'name': 'google_bigrams.npy',
+                'url': 'https://ndownloader.figshare.com/files/3676110'
+            },
+            {
+                'name': 'google_bigrams.pkl',
+                'url': 'https://ndownloader.figshare.com/files/3676113'
+            },
+        ]
+    },
     'google': {
         'description': 'Google n-gram dataset',
         'moreinfo':
@@ -136,8 +170,7 @@ def report_progress(blocks_transferred, block_size, total_size):
     sys.stdout.flush()
 
 
-def fetch(dataset_name, basepath=os.curdir):
-    path = os.path.join(basepath, dataset_name)
+def fetch(dataset_name, path=os.curdir):
     if not os.path.exists(path):
         os.makedirs(path)
 

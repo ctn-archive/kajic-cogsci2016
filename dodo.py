@@ -1,6 +1,6 @@
 import os.path
 
-from src.datasets import datasets
+from src.datasets import datasets, get_dataset_path
 
 
 def assocmat_files(name):
@@ -15,11 +15,13 @@ def sp_files(name):
 
 def task_fetch_data():
     for name, dataset in datasets.items():
+        if name == 'google':
+            continue
         yield {
             'name': name,
             'actions': ['scripts/fetch_data.py ' + name],
             'targets': [
-                os.path.join('data', 'raw', name, file_['name'])
+                os.path.join(get_dataset_path(name, dataset), file_['name'])
                 for file_ in dataset['files']],
             'uptodate': [True],  # only download data if not existent
         }
@@ -28,9 +30,7 @@ def task_fetch_data():
 def task_gen_association_matrices():
     matrices = [
         ('freeassoc', 'symmetric'),
-        ('freeassoc', 'asymmetric'),
-        ('google', '1grams'),
-        ('google', 'bigrams')]
+        ('freeassoc', 'asymmetric')]
     for dataset, method in matrices:
         yield {
             'name': dataset + '_' + method,
@@ -86,12 +86,12 @@ def task_svd():
             }
 
 
-def task_random_pointers():
+def task_random_orthonormal_pointers():
     return {
         'actions': [
             'scripts/generate_semantic_pointers.py freeassoc_asymmetric '
-            'randomize 256'],
+            'randomize_orthonormal 5120'],
         'file_dep': assocmat_files('freeassoc_asymmetric'),
         'targets': sp_files(
-            'freeassoc_asymmetric_randomize_5018w_256d'),
+            'freeassoc_asymmetric_randomize_5018w_5120d'),
     }

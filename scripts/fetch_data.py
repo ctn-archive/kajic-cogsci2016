@@ -8,7 +8,7 @@ sys.path.insert(
 
 import argparse
 
-from datasets import datasets, fetch
+from datasets import datasets, get_dataset_path, fetch
 
 
 parser = argparse.ArgumentParser(
@@ -22,7 +22,5 @@ args = parser.parse_args()
 if len(args.tofetch) <= 0:
     args.tofetch = datasets.keys()
 
-target_dir = os.path.join(os.path.dirname(
-    __file__), os.pardir, 'data', 'raw')
 for dataset_name in args.tofetch:
-    fetch(dataset_name, target_dir)
+    fetch(dataset_name, get_dataset_path(dataset_name, datasets[dataset_name]))
