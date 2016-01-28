@@ -34,7 +34,8 @@ To obtain the data for the spiking neural network plotted in Figure 4 run
 
 To obtain the data for the accuracy of the spiking neural network plotted in
 Figure 5 run `psy-doit`. Note that this requires up to 6GB of memory and can
-take a long time.
+take a long time. This will produce `psywork/result.h5`. Copy or move this file
+to `data/neural-accuracy.h5`.
 
 
 ### Creating tables and plots
