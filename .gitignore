@@ -15,6 +15,7 @@ data/RatModel#*.txt
 
 RatModel.cfg
 psywork
+data/neural-accuracy.h5
 data/associationmatrices/google-1grams
 data/associationmatrices/google-bigrams
 data/ConnectionsRatModel#*.txt
