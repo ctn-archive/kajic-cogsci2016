@@ -3,7 +3,7 @@ import platform
 import sys
 
 import_path = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '..', 'src'))
+    os.path.dirname(__file__), '..', 'sparat'))
 if import_path not in sys.path:
     sys.path.insert(0, import_path)
 
