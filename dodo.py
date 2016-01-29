@@ -93,5 +93,5 @@ def task_random_orthonormal_pointers():
             'randomize_orthonormal 5120'],
         'file_dep': assocmat_files('freeassoc_asymmetric'),
         'targets': sp_files(
-            'freeassoc_asymmetric_randomize_5018w_5120d'),
+            'freeassoc_asymmetric_randomize_orthonormal_5018w_5120d'),
     }
