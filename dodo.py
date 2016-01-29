@@ -1,6 +1,6 @@
 import os.path
 
-from src.datasets import datasets, get_dataset_path
+from sparat.datasets import datasets, get_dataset_path
 
 
 def assocmat_files(name):

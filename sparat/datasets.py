@@ -1,9 +1,13 @@
+import sys
+
 import itertools
 import os
 import os.path
-import urllib
+if sys.version_info[0] >= 3:
+    import urllib.request as urllib
+else:
+    import urllib
 import string
-import sys
 
 import pandas as pd
 
@@ -42,7 +46,8 @@ def load_free_association_data(path, column='FSG'):
     for filename in filenames:
         df = pd.read_csv(
             os.path.join(path, filename), skipinitialspace=True,
-            comment='<')  # comment='<' is a hackish way to skip HTML tags
+            comment='<',  # comment='<' is a hackish way to skip HTML tags
+            encoding='windows-1252')
         df[column] = pd.to_numeric(df[column])
 
         df_normed = df[df['NORMED?'] == 'YES']

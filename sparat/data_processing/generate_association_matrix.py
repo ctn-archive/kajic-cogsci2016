@@ -1,14 +1,16 @@
 from __future__ import division
 from __future__ import print_function
 
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import gzip
 import itertools
 import os
 import os.path
 import string
 
-from joblib import Parallel, delayed
 import numpy as np
 
 
@@ -83,6 +85,8 @@ def tr_add(mat1, mat2):
 
 
 def gen_1grams(words):
+    from joblib import Parallel, delayed
+
     id2word = list(words)
     word2id = {w: i for i, w in enumerate(id2word)}
     path = os.path.join(
@@ -119,6 +123,8 @@ def process_1gram_file(c, word2id, output):
 
 
 def gen_bigrams(words):
+    from joblib import Parallel, delayed
+
     id2word = list(words)
     word2id = {w: i for i, w in enumerate(id2word)}
     cs = itertools.product(string.ascii_lowercase, string.ascii_lowercase)

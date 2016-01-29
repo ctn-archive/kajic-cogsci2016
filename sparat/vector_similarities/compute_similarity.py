@@ -1,27 +1,16 @@
-import numpy as np
-import cPickle as pickle
 import os
+import os.path
+import sys
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), os.pardir))
 
+import numpy as np
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
-def load_rat_problems(name='problems'):
-    """Loads a list of 144 RAT items consisting of cues and targets.
-    
-    Parameters
-    ----------
-    name : str
-        Text file containing RAT items
-
-    Returns:
-    --------
-        A numpy array of characters.
-    """
-    path = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir,
-                        'data', 'rat')
-    datapath = os.path.join(path, name + '.txt')
-
-    items = np.loadtxt(datapath, dtype=np.character)
-
-    return items
+from data_processing.rat import load_rat_items
 
 
 def load_vectors(name):
@@ -41,24 +30,11 @@ def load_vectors(name):
 
     vectors = np.load(mat_file)
 
-    with open(map_file, 'r') as f:
+    with open(map_file, 'rb') as f:
         keys = pickle.load(f)
         w2i = pickle.load(f)
 
     return vectors, w2i, keys
-
-
-def all_words_in_vocab(problem, vocabulary):
-    """
-    Check whether all problem cues and the target exist in the vocabulary.
-    Return True/False.
-    """
-    word_in_vocabulary = True
-
-    for word in problem:
-        word_in_vocabulary = (word in vocabulary) and word_in_vocabulary
-
-    return word_in_vocabulary
 
 
 def get_similarities(W, w2i, prob, method):
@@ -71,7 +47,7 @@ def get_similarities(W, w2i, prob, method):
         Association matrix or matrix of vectors
     w2i : dict
         Word to id dictionary
-    prob : list
+    prob : RatItem
         Cues and the target
     method : str
         Name of the method used to generate representations
@@ -81,8 +57,7 @@ def get_similarities(W, w2i, prob, method):
     similarities : ndarray
         1D vector containing similarities to all words, averaged accross cues
     '''
-    c1, c2, c3, target = prob
-    cue_indices = [w2i[c1], w2i[c2], w2i[c3]]
+    cue_indices = [w2i[c] for c in prob.cues]
 
     if 'svd' in method:
         sims = np.dot(W[cue_indices], W.T)
@@ -116,7 +91,9 @@ def compute_similarity(method, quiet=True):
     targets : ndarray
         Position of target for every problem.
     '''
-    rat_problems = load_rat_problems()
+    rat_problems = load_rat_items(os.path.join(
+        os.path.dirname(__file__), os.pardir, os.pardir, 'data', 'rat',
+        'problems.txt'))
     vectors, w2i, words = load_vectors(method)
 
     similarities_target = []
@@ -126,18 +103,18 @@ def compute_similarity(method, quiet=True):
     total_problems = len(rat_problems)
 
     for problem in rat_problems:
-        if not all_words_in_vocab(problem, words):
+        if (any(c not in words for c in problem.cues) or
+                problem.target not in words):
             continue
-        target = problem[-1]
 
         sims = get_similarities(vectors, w2i, problem, method)
 
         similarities_everything.append(sims.mean())
-        similarities_target.append(sims[w2i[target]])
+        similarities_target.append(sims[w2i[problem.target]])
 
         # target position
         target_pos = lambda s, t: np.where(s.argsort()[::-1] == w2i[t])[0][0]
-        target_positions.append(target_pos(sims, target))
+        target_positions.append(target_pos(sims, problem.target))
 
     sim_target = np.array(similarities_target, dtype=np.float)
     sim_everything = np.array(similarities_everything, dtype=np.float)
