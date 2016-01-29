@@ -15,6 +15,7 @@ Most of the requirements should be installable with `pip`.
 * [pandas](http://pandas.pydata.org/)
 * [Seaborn](http://stanford.edu/~mwaskom/software/seaborn/)
 * [statsmodels](http://statsmodels.sourceforge.net/)
+* [xlrd](http://www.python-excel.org/)
 * [doit](http://pydoit.org/)
 
 #### For running the spiking neural network model
@@ -25,6 +26,14 @@ Most of the requirements should be installable with `pip`.
 To do the batch run to get the accuracy data for Figure 5:
 
 * [psyrun](https://github.com/jgosmann/psyrun)
+
+#### For processing the raw Google n-gram data
+
+* [joblib](https://pythonhosted.org/joblib/)
+
+Normally preprocessed n-gram data will be fetched from figshare and this
+dependency is not required. It is only needed to regenerate the data published
+on figshare.
 
 
 ### Fetching and processing data
