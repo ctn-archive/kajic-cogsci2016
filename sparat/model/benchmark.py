@@ -117,13 +117,13 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
             nengo.Connection(model.stimulus.cue2.output, model.rat_model.cue2)
             nengo.Connection(model.stimulus.cue3.output, model.rat_model.cue3)
             self.p_output = nengo.Probe(
-                model.rat_model.rat_state.output, synapse=0.01)
+                model.rat_model.rat_state.output, synapse=0.003)
             self.p_cue1 = nengo.Probe(
-                model.stimulus.cue1.output, synapse=0.01)
+                model.stimulus.cue1.output, synapse=0.003)
             self.p_cue2 = nengo.Probe(
-                model.stimulus.cue2.output, synapse=0.01)
+                model.stimulus.cue2.output, synapse=0.003)
             self.p_cue3 = nengo.Probe(
-                model.stimulus.cue3.output, synapse=0.01)
+                model.stimulus.cue3.output, synapse=0.003)
             self.p_spikes = nengo.Probe(
                 model.rat_model.rat_state.state_ensembles.ensembles[0].neurons,
                 'spikes')
