@@ -128,19 +128,24 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
                 model.rat_model.rat_state.state_ensembles.ensembles[0].neurons,
                 'spikes')
 
+            tr = np.dot(vocab.vectors.T, np.dot(assoc.T, vocab.vectors)) / 3.
+            direct_result = nengo.Ensemble(
+                n_neurons=1, dimensions=p.d, neuron_type=nengo.Direct())
+            nengo.Connection(
+                model.stimulus.cue1.output, direct_result, transform=tr)
+            nengo.Connection(
+                model.stimulus.cue2.output, direct_result, transform=tr)
+            nengo.Connection(
+                model.stimulus.cue3.output, direct_result, transform=tr)
+            self.p_direct = nengo.Probe(direct_result, synapse=0.003)
+
         return model
 
     def evaluate(self, p, sim, plt):
         sim.run(self.stimulus.total_duration)
         if p.rmse:
-            similarities = np.dot(
-                self.vocab.vectors, sim.data[self.p_output].T)
-            selection_intervals = [(0.5, 1.9), (2.5, 3.9), (4.5, 5.9)]
-            m_sim = np.asarray([np.mean(
-                similarities[:, np.logical_and(
-                    sim.trange() >= l,
-                    sim.trange() < u)], axis=1)
-                for (l, u) in selection_intervals])
+            m_sim = np.root(np.mean(np.square(
+                sim.data[self.p_direct] - sim.data[self.p_output])))
             result = dict(m_sim=m_sim)
         else:
             sort_indices = nengo.utils.ensemble.sorted_neurons(
