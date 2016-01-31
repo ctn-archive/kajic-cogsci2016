@@ -84,6 +84,10 @@ def tr_add(mat1, mat2):
     return mat1 + mat2
 
 
+def tr_multiply(mat1, mat2):
+    return np.dot(mat1, mat2)
+
+
 def gen_1grams(words):
     from joblib import Parallel, delayed
 
