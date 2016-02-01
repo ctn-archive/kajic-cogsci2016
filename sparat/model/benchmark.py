@@ -94,9 +94,6 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
         self.rat_items = list(filter_valid(load_rat_items(rat_path), i2w))
 
         with spa.SPA(seed=p.model_seed) as model:
-            model.config[nengo.Connection].solver = nengo.solvers.LstsqL2(
-                solver=nengo.solvers.randomized_svd)
-
             self.model = model
             # set up vocab
             self.vocab = model.get_default_vocab(p.d)
@@ -128,7 +125,9 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
                 model.rat_model.rat_state.state_ensembles.ensembles[0].neurons,
                 'spikes')
 
-            tr = np.dot(vocab.vectors.T, np.dot(assoc.T, vocab.vectors)) / 3.
+            tr = np.dot(
+                self.vocab.vectors.T,
+                np.dot(assoc.T, self.vocab.vectors)) / 3.
             direct_result = nengo.Ensemble(
                 n_neurons=1, dimensions=p.d, neuron_type=nengo.Direct())
             nengo.Connection(
@@ -144,7 +143,7 @@ class ConnectionsRatModel(ctn_benchmark.Benchmark):
     def evaluate(self, p, sim, plt):
         sim.run(self.stimulus.total_duration)
         if p.rmse:
-            m_sim = np.root(np.mean(np.square(
+            m_sim = np.sqrt(np.mean(np.square(
                 sim.data[self.p_direct] - sim.data[self.p_output])))
             result = dict(m_sim=m_sim)
         else:
