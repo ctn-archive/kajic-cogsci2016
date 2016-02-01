@@ -20,12 +20,12 @@ Most of the requirements should be installable with `pip`.
 
 #### For running the spiking neural network model
 
-* [Nengo](https://github.com/nengo/nengo)
-* [ctn_benchmarks](https://github.com/ctn-waterloo/ctn_benchmarks)
+* [Nengo](https://github.com/nengo/nengo) [2.0.3](https://github.com/nengo/nengo/releases/tag/v2.0.3)
+* [ctn_benchmarks](https://github.com/ctn-waterloo/ctn_benchmarks) [1aa6e93](https://github.com/ctn-waterloo/ctn_benchmarks/tree/1aa6e93b912fd16170ba8e3426f8718c85070504)
 
 To do the batch run to get the accuracy data for Figure 5:
 
-* [psyrun](https://github.com/jgosmann/psyrun)
+* [psyrun](https://github.com/jgosmann/psyrun) [41f6c20](https://github.com/jgosmann/psyrun/tree/41f6c203b65c14e7dc5c1ef424c75ec3ca8f9dbb)
 
 #### For processing the raw Google n-gram data
 
