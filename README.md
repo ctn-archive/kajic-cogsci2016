@@ -8,7 +8,7 @@
 
 Most of the requirements should be installable with `pip`.
 
-* [Python 2.7](https://www.python.org/) (Python 3 might work, but is untested)
+* [Python 2.7, 3.3, or newer](https://www.python.org/)
 * [NumPy](http://www.numpy.org/)
 * [SciPy](http://www.scipy.org/)
 * [matplotlib](http://matplotlib.org/)
