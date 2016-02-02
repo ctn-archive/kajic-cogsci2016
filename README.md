@@ -1,11 +1,12 @@
 # Towards a Cognitively Realistic Representation of Word Associations
+## Instructions for reproducing the results and plots 
 
-[Associated data files can be found on figshare.](https://dx.doi.org/10.6084/m9.figshare.2066799)
+Following instructions explain the procedure for replicating the results
+and the figures in the paper:
 
-## Reproducing plots and figures
+Kajić, I., Gosmann, J., Stewart, T., Wennekers, T., Eliasmith, C.: "Towards a Cognitively Realistic Representation of Word Associations" 
 
-### Requirements
-
+### 1. Requirements
 Most of the requirements should be installable with `pip`.
 
 * [Python 2.7, 3.3, or newer](https://www.python.org/)
@@ -17,17 +18,15 @@ Most of the requirements should be installable with `pip`.
 * [statsmodels](http://statsmodels.sourceforge.net/)
 * [xlrd](http://www.python-excel.org/)
 * [doit](http://pydoit.org/)
-
-#### For running the spiking neural network model
+* [jupyter](http://jupyter.org/)
+ 
+For running the spiking neural network model:
 
 * [Nengo](https://github.com/nengo/nengo) [2.0.3](https://github.com/nengo/nengo/releases/tag/v2.0.3)
 * [ctn_benchmarks](https://github.com/ctn-waterloo/ctn_benchmarks) [1aa6e93](https://github.com/ctn-waterloo/ctn_benchmarks/tree/1aa6e93b912fd16170ba8e3426f8718c85070504)
-
-To do the batch run to get the accuracy data for Figure 5:
-
 * [psyrun](https://github.com/jgosmann/psyrun) [41f6c20](https://github.com/jgosmann/psyrun/tree/41f6c203b65c14e7dc5c1ef424c75ec3ca8f9dbb)
 
-#### For processing the raw Google n-gram data
+For processing the raw Google n-gram data:
 
 * [joblib](https://pythonhosted.org/joblib/)
 
@@ -36,24 +35,69 @@ dependency is not required. It is only needed to regenerate the data published
 on figshare.
 
 
-### Fetching and processing data
+Clone the repository in the folder where you want to save the project:
+```
+git clone git@github.com:ctn-archive/kajic-cogsci2016.git
+```
 
-Run `doit` to fetch and process most of the required data.
+### 2. Fetching and processing data
+Getting and processing the data can take a long time (up to a few hours,
+depending on the machine).
 
-To obtain the data for the spiking neural network plotted in Figure 4 run
-`python sparat/model/benchmark.py`. Note that this requires up to 6GB of memory.
+This project uses data available from other online sources:
+- [Free Association Norms](http://w3.usf.edu/FreeAssociation/)
+- [Google n-gram data](http://storage.googleapis.com/books/ngrams/books/datasetsv2.html)
 
-To obtain the data for the accuracy of the spiking neural network plotted in
-Figure 5 run `psy-doit`. Note that this requires up to 6GB of memory and can
-take a long time. This will produce `psywork/result.h5`. Copy or move this file
-to `data/neural-accuracy.h5`.
+To fetch this data and generate corresponding matrices used in the paper, run
+the script:
+```
+doit
+```
+in the cloned repository. This script will fetch the data from the
+corresponding sources and generate matrices in the following folders:
+
+Free association norms and google n-gram: `./data/associationmatrices/`
+
+SVD Reduced representations of free norms and n-gram data: `./data/semanticpointers/`
+
+The raw Google n-grams are over 120 GB, for that reason the default setting in
+the script will not attempt to download the raw data. Instead, it gets the processed data
+stored on [figshare](https://dx.doi.org/10.6084/m9.figshare.2066799) which is around 200 MB.
+
+To obtain the data for the Figure 3 A) and B) in the paper, you need to run the network
+simulation that actually produces the spikes. This requires up to 6GB of memory.
+This can be done with:
+```
+python sparat/model/benchmark.py
+```
+
+For reproduce the RMSE plot in Figure 3 C), we need to run several different
+models, each corresponding to a different number of neurons. Again, this is
+a computationally exhausting step which can require up to 6GB of memory and can
+take some time. To do so, run:
+
+```
+psy-doit
+```
+and go and grab a coffee. This will produce `psywork/result.h5`. Copy or move this file to
+`data/neural-accuracy.h5`. Alternatively, you can download the data we have used
+in the paper from the [figshare](https://figshare.com/articles/neural_accuracy_h5/2069697).
 
 
-### Creating tables and plots
 
-After you performed the previous step to generate the required data, you find
-Jupyter notebooks in `notebooks`. Run these to recreate the plots and tables in
-the paper.
+### 3. Creating tables and plots
+All the figures in this paper have been generated using Python scripts in
+Jupyter Notebooks in the directory `notebook`.
+
+Following notebooks reproduce the data:
+- `Target positions.ipynb`: Table 1, Figure 1
+- `Match with experimental data with curve fitting.ipynb`: Table 2, Figure 2
+- `Neural Accuracy.ipynb`: Figure 3 C)
+- `Neural.ipynb`: Figure 3 A), B)
+
+Running these notebooks will generate contents in:
+
+`.\txt\cogsci-paper\{figures,tables}` 
 
 
 ## Repository organization
